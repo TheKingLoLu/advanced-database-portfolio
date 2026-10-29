@@ -1,0 +1,138 @@
+﻿                                                                                        QUERY PLAN                                                                                         
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=15459.64..15459.66 rows=10 width=14) (actual time=140.155..142.079 rows=10 loops=1)
+   ->  Sort  (cost=15459.64..15484.64 rows=10000 width=14) (actual time=140.154..142.076 rows=10 loops=1)
+         Sort Key: (max(sc.points)) DESC
+         Sort Method: top-N heapsort  Memory: 25kB
+         ->  Finalize HashAggregate  (cost=15143.54..15243.54 rows=10000 width=14) (actual time=138.105..140.932 rows=9980 loops=1)
+               Group Key: p.username
+               Batches: 1  Memory Usage: 1169kB
+               ->  Gather  (cost=12943.54..15043.54 rows=20000 width=14) (actual time=128.702..133.972 rows=26117 loops=1)
+                     Workers Planned: 2
+                     Workers Launched: 2
+                     ->  Partial HashAggregate  (cost=11943.54..12043.54 rows=10000 width=14) (actual time=123.399..124.992 rows=8706 loops=3)
+                           Group Key: p.username
+                           Batches: 1  Memory Usage: 913kB
+                           Worker 0:  Batches: 1  Memory Usage: 1169kB
+                           Worker 1:  Batches: 1  Memory Usage: 1169kB
+                           ->  Hash Join  (cost=5436.41..11812.46 rows=26215 width=14) (actual time=38.091..113.597 rows=20793 loops=3)
+                                 Hash Cond: (s.player_id = p.player_id)
+                                 ->  Parallel Hash Join  (cost=5108.41..11415.62 rows=26215 width=8) (actual time=32.435..100.861 rows=20793 loops=3)
+                                       Hash Cond: (sc.session_id = s.session_id)
+                                       ->  Parallel Seq Scan on scores sc  (cost=0.00..5760.33 rows=208333 width=12) (actual time=0.016..18.641 rows=166667 loops=3)
+                                       ->  Parallel Hash  (cost=4780.72..4780.72 rows=26215 width=12) (actual time=32.060..32.061 rows=20793 loops=3)
+                                             Buckets: 65536  Batches: 1  Memory Usage: 3488kB
+                                             ->  Parallel Bitmap Heap Scan on sessions s  (cost=776.03..4780.72 rows=26215 width=12) (actual time=4.825..24.359 rows=20793 loops=3)
+                                                   Recheck Cond: (game_id = 1)
+                                                   Heap Blocks: exact=1619
+                                                   ->  Bitmap Index Scan on idx_sessions_game_player  (cost=0.00..760.30 rows=62917 width=0) (actual time=7.321..7.321 rows=62378 loops=1)
+                                                         Index Cond: (game_id = 1)
+                                 ->  Hash  (cost=203.00..203.00 rows=10000 width=14) (actual time=5.545..5.546 rows=10000 loops=3)
+                                       Buckets: 16384  Batches: 1  Memory Usage: 597kB
+                                       ->  Seq Scan on players p  (cost=0.00..203.00 rows=10000 width=14) (actual time=0.021..2.609 rows=10000 loops=3)
+ Planning Time: 8.525 ms
+ Execution Time: 145.088 ms
+(32 rows)
+
+                                                                                           QUERY PLAN                                                                                            
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Subquery Scan on ranked  (cost=15490.73..15788.72 rows=50 width=16) (actual time=110.052..111.741 rows=1 loops=1)
+   Filter: (ranked.player_id = 42)
+   Rows Removed by Filter: 9979
+   ->  WindowAgg  (cost=15490.73..15664.56 rows=9933 width=16) (actual time=104.423..111.132 rows=9980 loops=1)
+         ->  Sort  (cost=15490.73..15515.57 rows=9933 width=8) (actual time=104.376..106.613 rows=9980 loops=1)
+               Sort Key: best.best DESC
+               Sort Method: quicksort  Memory: 696kB
+               ->  Subquery Scan on best  (cost=14731.95..14831.28 rows=9933 width=8) (actual time=98.294..102.081 rows=9980 loops=1)
+                     ->  Finalize HashAggregate  (cost=14731.95..14831.28 rows=9933 width=8) (actual time=98.293..101.131 rows=9980 loops=1)
+                           Group Key: s.player_id
+                           Batches: 1  Memory Usage: 1169kB
+                           ->  Gather  (cost=12546.69..14632.62 rows=19866 width=8) (actual time=84.957..91.218 rows=26266 loops=1)
+                                 Workers Planned: 2
+                                 Workers Launched: 2
+                                 ->  Partial HashAggregate  (cost=11546.69..11646.02 rows=9933 width=8) (actual time=80.717..82.735 rows=8755 loops=3)
+                                       Group Key: s.player_id
+                                       Batches: 1  Memory Usage: 1169kB
+                                       Worker 0:  Batches: 1  Memory Usage: 1169kB
+                                       Worker 1:  Batches: 1  Memory Usage: 1169kB
+                                       ->  Parallel Hash Join  (cost=5108.41..11415.62 rows=26215 width=8) (actual time=17.805..73.419 rows=20793 loops=3)
+                                             Hash Cond: (sc.session_id = s.session_id)
+                                             ->  Parallel Seq Scan on scores sc  (cost=0.00..5760.33 rows=208333 width=12) (actual time=0.011..13.554 rows=166667 loops=3)
+                                             ->  Parallel Hash  (cost=4780.72..4780.72 rows=26215 width=12) (actual time=17.492..17.493 rows=20793 loops=3)
+                                                   Buckets: 65536  Batches: 1  Memory Usage: 3456kB
+                                                   ->  Parallel Bitmap Heap Scan on sessions s  (cost=776.03..4780.72 rows=26215 width=12) (actual time=1.906..12.770 rows=20793 loops=3)
+                                                         Recheck Cond: (game_id = 1)
+                                                         Heap Blocks: exact=1520
+                                                         ->  Bitmap Index Scan on idx_sessions_game_player  (cost=0.00..760.30 rows=62917 width=0) (actual time=4.911..4.911 rows=62378 loops=1)
+                                                               Index Cond: (game_id = 1)
+ Planning Time: 0.282 ms
+ Execution Time: 112.323 ms
+(31 rows)
+
+                                                                    QUERY PLAN                                                                    
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=616.17..616.29 rows=50 width=25) (actual time=10.983..10.988 rows=43 loops=1)
+   Sort Key: sc.achieved_at DESC
+   Sort Method: quicksort  Memory: 27kB
+   ->  Nested Loop  (cost=5.23..614.76 rows=50 width=25) (actual time=1.443..10.934 rows=43 loops=1)
+         Join Filter: (s.game_id = g.game_id)
+         Rows Removed by Join Filter: 76
+         ->  Nested Loop  (cost=5.23..610.44 rows=50 width=16) (actual time=1.423..10.851 rows=43 loops=1)
+               ->  Bitmap Heap Scan on sessions s  (cost=4.81..187.94 rows=50 width=12) (actual time=0.080..0.207 rows=43 loops=1)
+                     Recheck Cond: (player_id = 42)
+                     Heap Blocks: exact=42
+                     ->  Bitmap Index Scan on idx_sessions_player  (cost=0.00..4.80 rows=50 width=0) (actual time=0.072..0.072 rows=43 loops=1)
+                           Index Cond: (player_id = 42)
+               ->  Index Scan using idx_scores_session on scores sc  (cost=0.42..8.44 rows=1 width=20) (actual time=0.245..0.246 rows=1 loops=43)
+                     Index Cond: (session_id = s.session_id)
+         ->  Materialize  (cost=0.00..1.07 rows=5 width=17) (actual time=0.000..0.001 rows=3 loops=43)
+               ->  Seq Scan on games g  (cost=0.00..1.05 rows=5 width=17) (actual time=0.009..0.011 rows=5 loops=1)
+ Planning Time: 0.636 ms
+ Execution Time: 11.019 ms
+(18 rows)
+
+                                                                                 QUERY PLAN                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=21662.89..21662.91 rows=8 width=35) (actual time=312.747..324.197 rows=8 loops=1)
+   Sort Key: (round(avg(sc.points), 0)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  Finalize GroupAggregate  (cost=21660.70..21662.77 rows=8 width=35) (actual time=312.703..324.167 rows=8 loops=1)
+         Group Key: p.country_code
+         ->  Gather Merge  (cost=21660.70..21662.57 rows=16 width=35) (actual time=312.641..324.096 rows=24 loops=1)
+               Workers Planned: 2
+               Workers Launched: 2
+               ->  Sort  (cost=20660.68..20660.70 rows=8 width=35) (actual time=308.926..309.078 rows=8 loops=3)
+                     Sort Key: p.country_code
+                     Sort Method: quicksort  Memory: 25kB
+                     Worker 0:  Sort Method: quicksort  Memory: 25kB
+                     Worker 1:  Sort Method: quicksort  Memory: 25kB
+                     ->  Partial HashAggregate  (cost=20660.48..20660.56 rows=8 width=35) (actual time=308.886..309.038 rows=8 loops=3)
+                           Group Key: p.country_code
+                           Batches: 1  Memory Usage: 24kB
+                           Worker 0:  Batches: 1  Memory Usage: 24kB
+                           Worker 1:  Batches: 1  Memory Usage: 24kB
+                           ->  Hash Join  (cost=9710.50..19618.81 rows=208333 width=7) (actual time=167.587..272.553 rows=166667 loops=3)
+                                 Hash Cond: (s.player_id = p.player_id)
+                                 ->  Parallel Hash Join  (cost=9382.50..18743.70 rows=208333 width=8) (actual time=163.675..233.461 rows=166667 loops=3)
+                                       Hash Cond: (sc.session_id = s.session_id)
+                                       ->  Parallel Seq Scan on scores sc  (cost=0.00..5760.33 rows=208333 width=12) (actual time=0.011..34.408 rows=166667 loops=3)
+                                       ->  Parallel Hash  (cost=5760.33..5760.33 rows=208333 width=12) (actual time=76.826..76.826 rows=166667 loops=3)
+                                             Buckets: 262144  Batches: 4  Memory Usage: 7968kB
+                                             ->  Parallel Seq Scan on sessions s  (cost=0.00..5760.33 rows=208333 width=12) (actual time=0.007..36.114 rows=166667 loops=3)
+                                 ->  Hash  (cost=203.00..203.00 rows=10000 width=7) (actual time=3.849..3.850 rows=10000 loops=3)
+                                       Buckets: 16384  Batches: 1  Memory Usage: 519kB
+                                       ->  Seq Scan on players p  (cost=0.00..203.00 rows=10000 width=7) (actual time=0.014..2.202 rows=10000 loops=3)
+ Planning Time: 0.649 ms
+ Execution Time: 324.332 ms
+(31 rows)
+
+                                                                 QUERY PLAN                                                                 
+--------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=0.42..28.89 rows=10 width=20) (actual time=0.637..1.246 rows=10 loops=1)
+   ->  Index Scan using idx_scores_points on scores sc  (cost=0.42..27706.30 rows=9732 width=20) (actual time=0.635..1.243 rows=10 loops=1)
+         Filter: (achieved_at > (now() - '7 days'::interval))
+         Rows Removed by Filter: 278
+ Planning Time: 3.198 ms
+ Execution Time: 1.265 ms
+(6 rows)
+
