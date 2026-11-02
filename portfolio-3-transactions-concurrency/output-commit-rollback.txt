@@ -1,0 +1,52 @@
+﻿--- Starting values for player 1 ---
+ player_id | total_points | games_played 
+-----------+--------------+--------------
+         1 |            0 |            0
+(1 row)
+
+--- Transaction 1: ROLLBACK ---
+BEGIN
+INSERT 0 1
+UPDATE 1
+Inside the transaction (change visible to me only):
+ player_id | total_points | games_played 
+-----------+--------------+--------------
+         1 |          500 |            1
+(1 row)
+
+ROLLBACK
+After ROLLBACK (change undone):
+ player_id | total_points | games_played 
+-----------+--------------+--------------
+         1 |            0 |            0
+(1 row)
+
+--- Transaction 2: COMMIT ---
+BEGIN
+INSERT 0 1
+UPDATE 1
+COMMIT
+After COMMIT (change is permanent):
+ player_id | total_points | games_played 
+-----------+--------------+--------------
+         1 |          500 |            1
+(1 row)
+
+--- Transaction 3: failure causes rollback of everything ---
+BEGIN
+UPDATE 1
+ROLLBACK
+Player 2 is unchanged:
+docker : ERROR:  new row for relation "player_stats" violates check constraint "player_stats_total_points_check"
+At line:1 char:72
++ ... lback.sql | docker exec -i pg psql -U postgres -d leaderboard 2>&1 |  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR:  new row...l_points_check":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+DETAIL:  Failing row contains (2, -999899, 0).
+ player_id | total_points | games_played 
+-----------+--------------+--------------
+         2 |            0 |            0
+(1 row)
+
