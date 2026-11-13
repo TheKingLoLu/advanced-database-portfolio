@@ -1,0 +1,18 @@
+ZADD lb:demo 5000 player:1 7200 player:2 6100 player:3 8300 player:4 4500 player:5
+ZREVRANGE lb:demo 0 2 WITHSCORES
+ZREVRANK lb:demo player:3
+ZSCORE lb:demo player:3
+ZINCRBY lb:demo 3000 player:1
+ZREVRANGE lb:demo 0 -1 WITHSCORES
+ZREVRANK lb:demo player:1
+ZCOUNT lb:demo 6000 +inf
+ZREVRANGE lb:demo 2 4 WITHSCORES
+ZADD lb:demo GT 4000 player:1
+ZSCORE lb:demo player:1
+ZREM lb:demo player:5
+ZCARD lb:demo
+ZADD lb:weekly 100 player:1
+EXPIRE lb:weekly 604800
+TTL lb:weekly
+HSET player:1 username player1 country NG
+HGETALL player:1
