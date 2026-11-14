@@ -1,0 +1,34 @@
+﻿CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 20000
+--- Rows per shard ---
+        shard         | row_count 
+----------------------+-----------
+ player_scores_shard0 |      5222
+ player_scores_shard1 |      4705
+ player_scores_shard2 |      5448
+ player_scores_shard3 |      4625
+(4 rows)
+
+--- Query for one player: which shards are scanned? ---
+                                          QUERY PLAN                                          
+----------------------------------------------------------------------------------------------
+ Seq Scan on player_scores_shard2 player_scores_sharded  (cost=0.00..109.38 rows=30 width=20)
+   Filter: (player_id = 42)
+(2 rows)
+
+--- Query across all players: which shards are scanned? ---
+                                                 QUERY PLAN                                                 
+------------------------------------------------------------------------------------------------------------
+ HashAggregate  (cost=567.60..570.10 rows=200 width=36)
+   Group Key: player_scores_sharded.game_id
+   ->  Append  (cost=0.00..457.95 rows=21930 width=8)
+         ->  Seq Scan on player_scores_shard0 player_scores_sharded_1  (cost=0.00..91.80 rows=5780 width=8)
+         ->  Seq Scan on player_scores_shard1 player_scores_sharded_2  (cost=0.00..81.00 rows=5100 width=8)
+         ->  Seq Scan on player_scores_shard2 player_scores_sharded_3  (cost=0.00..94.50 rows=5950 width=8)
+         ->  Seq Scan on player_scores_shard3 player_scores_sharded_4  (cost=0.00..81.00 rows=5100 width=8)
+(7 rows)
+
